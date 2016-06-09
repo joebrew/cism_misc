@@ -1,15 +1,25 @@
 ---
 title: "CISM Survey analysis"
-author: "Joe Brew"
+author: "CISM"
 date: "June 9, 2016"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: yeti
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Basic knitr options
+library(knitr)
+opts_chunk$set(comment = NA, 
+               echo = FALSE, 
+               warning = FALSE, 
+               message = FALSE, 
+               error = FALSE, 
+               cache = FALSE)
 ```
 
-## Survey analysis of an interactive spreadsheet
 
 
 
@@ -18,6 +28,8 @@ library(gsheet)
 library(dplyr)
 library(ggmap)
 library(ggplot2)
+library(ggthemes)
+library(maps)
 
 # Read in the survey
 url_survey <- 'https://docs.google.com/spreadsheets/d/1iSn98ahGwZOQbBYVw8h0UeRnk_XBRLGPhmwMediDBnY/edit?usp=sharing'
@@ -31,10 +43,24 @@ geocoded <- geocode(survey$city)
 survey <- cbind(survey, geocoded)
 ```
 
-## Visuals
+# Result
+
+## Sex
+
+```{r}
+sex <- survey %>%
+  group_by(sex) %>%
+  tally()
+ggplot(data = sex,
+       aes(x = sex, y = n)) +
+  geom_bar(stat = 'identity', fill = 'darkorange', alpha= 0.6) +
+  theme_fivethirtyeight() +
+  ggtitle('Sex among CISM staff') +
+  ylab('People')
+```
 
 
-### Food
+## Food
 
 ```{r}
 food <- survey %>%
@@ -42,7 +68,8 @@ food <- survey %>%
   tally()
 ggplot(data = food,
        aes(x = food, y = n)) +
-  geom_bar(stat = 'identity', fill = 'blue', alpha = 0.6) +
+  geom_bar(stat = 'identity', fill = 'darkgreen', alpha = 0.6) +
+  theme_fivethirtyeight() +
   xlab('Food type') +
   ylab('People') +
   ggtitle('Food preferences among CISM staff') 
@@ -53,5 +80,67 @@ ggplot(data = food,
 ```{r}
 ggplot(data = survey,
        aes(x = age)) +
-  geom_histogram()
+  geom_histogram() +
+  theme_fivethirtyeight() +
+  ggtitle('Distribution of age among CISM staff')
+```
+
+## Cities to visit  
+
+```{r}
+cities <- survey %>%
+  group_by(city) %>%
+  tally()
+ggplot(data = cities,
+       aes(x = city, y = n)) +
+  geom_bar(stat = 'identity', fill = 'darkred', alpha = 0.6) +
+  theme_fivethirtyeight() +
+  xlab('City') +
+  ylab('People') +
+  ggtitle('City preferences among CISM staff')  +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+map('world')
+cols <- ifelse(survey$sex == 'Man', 'blue',
+               ifelse(survey$sex == 'Woman', 'red',
+                      'green'))
+points(survey$lon, survey$lat,
+       col = cols,
+       pch = 16)
+legend('bottom',
+       pch = 1,
+       col = c('blue', 'red', 'green'),
+       legend = c('Man', 'Woman', 'Does not know'))
+```
+
+## Eradication
+
+```{r}
+eradication <- survey %>%
+  group_by(eradication) %>%
+  tally()
+ggplot(data = eradication,
+       aes(x = eradication, y = n)) +
+  geom_bar(stat = 'identity', fill = 'purple', alpha = 0.6) +
+  theme_fivethirtyeight() +
+  xlab('Year') +
+  ylab('People') +
+  ggtitle('Eradication beliefs among CISM staff')  +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+## Who is more handsome?
+
+```{r}
+bonito <- survey %>%
+  group_by(bonito) %>%
+  tally()
+ggplot(data = bonito,
+       aes(x = bonito, y = n)) +
+  geom_bar(stat = 'identity', fill = 'purple', alpha = 0.6) +
+  theme_fivethirtyeight() +
+  xlab('Person') +
+  ylab('People') +
+  ggtitle('Who is more handsome?')  +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
